@@ -1,7 +1,7 @@
 export default function App() {
   return (
-    <div style={{ color: "white", padding: 24 }}>
+    <h1 style={{ color: "black" }}>
       MacroCount LIVE
-    </div>
+    </h1>
   );
 }
