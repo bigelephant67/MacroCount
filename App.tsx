@@ -122,7 +122,8 @@ const App: React.FC = () => {
 export default function App() {
   return (
     <div style={{ color: "white", padding: 20 }}>
-      <h1>MacroCount is live</h1>
+      <h1>MacroCount LIVE</h1>
+      <p>If you see this, React rendering works.</p>
     </div>
   );
 }
