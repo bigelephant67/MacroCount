@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppState, UserProfile, Macros, FoodItem } from './types';
 import { calculateTDEE, generateId } from './utils';
 import Onboarding from './screens/Onboarding';
@@ -55,9 +55,34 @@ const INITIAL_LOG: FoodItem[] = [
 ];
 
 const App: React.FC = () => {
-  const [profile, setProfileState] = useState<UserProfile>(DEFAULT_PROFILE);
-  const [targets, setTargets] = useState<Macros>(calculateTDEE(DEFAULT_PROFILE));
-  const [log, setLog] = useState<FoodItem[]>(INITIAL_LOG);
+  // Load from local storage or use defaults
+  const [profile, setProfileState] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('mc_profile');
+    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
+  });
+  
+  const [targets, setTargets] = useState<Macros>(() => {
+    const saved = localStorage.getItem('mc_targets');
+    return saved ? JSON.parse(saved) : calculateTDEE(DEFAULT_PROFILE);
+  });
+
+  const [log, setLog] = useState<FoodItem[]>(() => {
+    const saved = localStorage.getItem('mc_log');
+    return saved ? JSON.parse(saved) : INITIAL_LOG;
+  });
+
+  // Persistence Effects
+  useEffect(() => {
+    localStorage.setItem('mc_profile', JSON.stringify(profile));
+  }, [profile]);
+
+  useEffect(() => {
+    localStorage.setItem('mc_targets', JSON.stringify(targets));
+  }, [targets]);
+
+  useEffect(() => {
+    localStorage.setItem('mc_log', JSON.stringify(log));
+  }, [log]);
 
   const setProfile = (newProfile: UserProfile) => {
     setProfileState(newProfile);
@@ -70,7 +95,6 @@ const App: React.FC = () => {
 
   const addFood = (item: Omit<FoodItem, 'id'>) => {
     const newItem = { ...item, id: generateId() };
-    // Sort by time
     setLog(prev => [...prev, newItem].sort((a, b) => a.timestamp.localeCompare(b.timestamp)));
   };
 
@@ -83,7 +107,7 @@ const App: React.FC = () => {
       <HashRouter>
         <div className="bg-background-dark min-h-screen text-white font-display mx-auto max-w-md shadow-2xl overflow-hidden relative">
           <Routes>
-            <Route path="/" element={<Navigate to="/onboarding" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/timeline" element={<Timeline />} />

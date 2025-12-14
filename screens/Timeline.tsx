@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../App';
 import { FoodItem } from '../types';
@@ -6,12 +6,10 @@ import { FoodItem } from '../types';
 const Timeline: React.FC = () => {
   const { log, removeFood, targets } = useAppContext();
   const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
   
   const totalCals = log.reduce((sum, item) => sum + item.calories, 0);
   const totalProtein = log.reduce((sum, item) => sum + item.protein, 0);
-
-  // Group log items to separate time blocks visually if needed, but the mockup is a straight list
-  // The mockup has a vertical line connecting them.
 
   return (
     <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark relative pb-32">
@@ -22,8 +20,11 @@ const Timeline: React.FC = () => {
                     <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>arrow_back</span>
                 </button>
                 <h1 className="text-lg font-bold tracking-tight text-white">Today</h1>
-                <button className="text-primary font-semibold text-sm px-2 py-1 hover:text-primary/80 transition-colors">
-                    Edit
+                <button 
+                    onClick={() => setIsEditing(!isEditing)}
+                    className={`font-semibold text-sm px-3 py-1.5 rounded-lg transition-all ${isEditing ? 'bg-primary text-background-dark' : 'text-primary hover:bg-white/5'}`}
+                >
+                    {isEditing ? 'Done' : 'Edit'}
                 </button>
             </div>
             {/* Daily Summary Stats */}
@@ -64,11 +65,17 @@ const Timeline: React.FC = () => {
             </div>
           ) : (
             log.map((item, index) => (
-                <TimelineItem key={item.id} item={item} isLast={index === log.length - 1} onDelete={() => removeFood(item.id)} />
+                <TimelineItem 
+                    key={item.id} 
+                    item={item} 
+                    isLast={index === log.length - 1} 
+                    onDelete={() => removeFood(item.id)}
+                    isEditing={isEditing}
+                />
             ))
           )}
 
-          {log.length > 0 && (
+          {log.length > 0 && !isEditing && (
               <div className="flex justify-center mt-8 opacity-40">
                 <div className="flex items-center gap-4 text-xs text-gray-400">
                     <div className="flex items-center gap-1">
@@ -126,11 +133,17 @@ interface TimelineItemProps {
     item: FoodItem;
     isLast: boolean;
     onDelete: () => void;
+    isEditing: boolean;
 }
 
-const TimelineItem: React.FC<TimelineItemProps> = ({ item, isLast, onDelete }) => {
-    // Basic interaction state for "swipe" simulation
-    const [swiped, setSwiped] = React.useState(false);
+const TimelineItem: React.FC<TimelineItemProps> = ({ item, isLast, onDelete, isEditing }) => {
+    const [swiped, setSwiped] = useState(false);
+    
+    useEffect(() => {
+        if (!isEditing) {
+            setSwiped(false);
+        }
+    }, [isEditing]);
     
     // Icon based on meal
     const icon = {
@@ -139,6 +152,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, isLast, onDelete }) =
         'Dinner': 'set_meal',
         'Snack': 'water_drop'
     }[item.mealType] || 'restaurant';
+
+    const isRevealed = swiped || isEditing;
 
     return (
         <div className="relative flex gap-4 mb-6 group">
@@ -152,13 +167,16 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ item, isLast, onDelete }) =
             <div className="flex-1 relative h-full rounded-xl overflow-hidden">
                 {/* Delete Background */}
                 <div className="absolute inset-0 bg-delete rounded-xl flex items-center justify-end px-6 cursor-pointer" onClick={onDelete}>
-                    <span className="material-symbols-outlined text-white animate-pulse">delete</span>
+                    <div className="flex items-center gap-1 text-white animate-pulse font-bold">
+                        <span className="material-symbols-outlined">delete</span>
+                        {isEditing && <span>Delete</span>}
+                    </div>
                 </div>
                 
                 {/* Main Card Content */}
                 <div 
-                    onClick={() => setSwiped(!swiped)}
-                    className={`relative bg-surface-dark border border-surface-border rounded-xl p-4 transition-transform duration-300 ease-out cursor-pointer ${swiped ? '-translate-x-20 rounded-r-none border-r-0 shadow-xl' : ''}`}
+                    onClick={() => !isEditing && setSwiped(!swiped)}
+                    className={`relative bg-surface-dark border border-surface-border rounded-xl p-4 transition-transform duration-300 ease-out cursor-pointer ${isRevealed ? '-translate-x-24 rounded-r-none border-r-0 shadow-xl' : ''}`}
                 >
                     <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
