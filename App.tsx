@@ -119,4 +119,10 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default function App() {
+  return (
+    <div style={{ color: "white", padding: 20 }}>
+      <h1>MacroCount is live</h1>
+    </div>
+  );
+}
