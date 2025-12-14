@@ -1,8 +1,14 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
 
-const container = document.getElementById("root");
+const el = document.getElementById("root");
 
-if (container) {
-  createRoot(document.getElementById("root")!)
+if (!el) {
+  alert("ROOT NOT FOUND");
+} else {
+  alert("JS IS RUNNING");
+  createRoot(el).render(
+    <h1 style={{ color: "white", padding: 20 }}>
+      IT WORKS
+    </h1>
+  );
+}
